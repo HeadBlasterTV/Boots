@@ -1,0 +1,7 @@
+name: Boots
+version: 1.0.0
+author: HeadBlasterTV
+main: de.headblaster.boots.Boots
+commands:
+  boots:
+    description: Opens the Boots menu

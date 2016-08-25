@@ -1,5 +1,9 @@
 package de.headblaster.boots;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -7,6 +11,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
@@ -20,7 +25,9 @@ public class Boots extends JavaPlugin{
 	
 	@Override
 	public void onEnable() {
-							
+				
+		this.setStandard();
+		
 		System.out.println("[Boots] activated");
 		
 		Bukkit.getServer().getPluginManager().registerEvents(new BootsEvents(this), this);
@@ -38,6 +45,8 @@ public class Boots extends JavaPlugin{
 			if(command.getName().equalsIgnoreCase("boots")) {
 				
 				if(p.hasPermission("boots.boots")) {
+					
+					if(args.length == 0) {
 					
 					int reihen = 0;
 					
@@ -72,15 +81,99 @@ public class Boots extends JavaPlugin{
 						meta.setColor(boots.getColor());
 						meta.setDisplayName(boots.getName());
 						meta.spigot().setUnbreakable(true);
+						
+						List<String> lore = new ArrayList<>();
+						lore.add(boots.getLore());
+						lore.add(boots.getLore2());
+						meta.setLore(lore);
+						
+						meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+						meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE);
+						meta.addItemFlags(ItemFlag.HIDE_PLACED_ON);
+
 						boot.setItemMeta(meta);
 						
 						inv.setItem(slot, boot);
 						slot++;
 						
 						p.playSound(p.getLocation(), Sound.CHICKEN_EGG_POP, 200, 200);
+						//boots settings can-drop false
+					}
+					
+					
+					
+					} else if(args.length == 1) {
+						
+						  if(args[0].equalsIgnoreCase("help")) {
+								
+								p.sendMessage(PREFIX + "/boots - Opens the boots menu");
+								p.sendMessage(PREFIX + "/boots settings prize [Integer] - Set the Prize of the Boots(Essentials Economy)");
+								p.sendMessage(PREFIX + "/boots settings can-drop [Boolean(true|false)] - Set if the player can drop the boots");
+								p.sendMessage(PREFIX + "/boots settings remove-on-leave [Boolean(true|false)] - Set if the boots remove if the player leaves the server");
+								
+							}
+						
+						
 						
 					}
-
+					
+					
+					else if(args.length == 3) {
+						
+						if(args[0].equalsIgnoreCase("settings")) {
+							if(p.hasPermission("boots.settings")) {
+							if(args[1].equalsIgnoreCase("can-drop")) {
+								try {
+								BootsEvents.can_drop = Boolean.parseBoolean(args[2]);
+								
+								BootsEvents.CONFIG.set("can-drop", args[2]);
+								
+								BootsEvents.CONFIG.save(BootsEvents.file);
+								
+								p.sendMessage(PREFIX + "Setting Changed!");
+								
+								} catch(IOException e) {
+									
+									p.sendMessage(PREFIX + "'" + args[2] +"' must be a boolean(true|false)");
+									
+								} 
+							} else if(args[1].equalsIgnoreCase("remove-on-leave")) {
+								
+								try {
+									BootsEvents.remove_on_leave = Boolean.parseBoolean(args[2]);
+									
+									BootsEvents.CONFIG.set("remove-on-leave", args[2]);
+									
+									BootsEvents.CONFIG.save(BootsEvents.file);
+									
+									p.sendMessage(PREFIX + "Setting Changed!");
+									
+									} catch (IOException e) {
+										// TODO Auto-generated catch block
+										e.printStackTrace();
+									} 
+								
+							} else if(args[1].equalsIgnoreCase("prize")) {
+								
+								try {
+									BootsEvents.prize_per_boots = Integer.parseInt(args[2]);
+									BootsEvents.CONFIG.set("prize-per-boots", args[2]);
+									
+									BootsEvents.CONFIG.save(BootsEvents.file);
+									
+									p.sendMessage(PREFIX + "Setting Changed!");
+									
+									} catch(IOException e) {
+										
+										p.sendMessage(PREFIX + "'" + args[2] +"' must be an integer(1;2;3;4;5;6;7;8;9.....)");
+										
+									} 
+							}
+							}
+							
+						}
+						
+					}
 				}
 				
 			}
@@ -89,6 +182,21 @@ public class Boots extends JavaPlugin{
 		
 		
 		return true;
+	}
+	
+	public void setStandard() {
+		if(!BootsEvents.file.exists()) {
+		BootsEvents.CONFIG.set("can-drop", false);
+		BootsEvents.CONFIG.set("remove-on-leave", true);
+		BootsEvents.CONFIG.set("prize-per-boots", 100);
+		
+		try {
+			BootsEvents.CONFIG.save(BootsEvents.file);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		}
 	}
 	
 }
